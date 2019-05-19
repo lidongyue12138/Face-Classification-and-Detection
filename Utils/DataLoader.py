@@ -84,6 +84,8 @@ class DataLoader:
         self.test_data = self.whole_data[int(len(self.whole_data)*0.8)+1:]
         self.test_label = self.whole_label[int(len(self.whole_data)*0.8)+1:]
 
+        print("========== Loading training and testing finished =========")
+
 
     # ----------------------------------------- CUTE SPLIT LINE -------------------------------------------------
     def read_images_names(self, file_name):
@@ -371,69 +373,3 @@ if __name__ == "__main__":
     print(DataLoader.fold_list)
     print(DataLoader.ellipse_list)
     DataLoader.load_dataset()
-    # for img in DataLoader.generate_negative_samples(tmp_file, mode="SLIDING"):
-    #     plt.imshow(img, cmap = 'gray', interpolation = 'bicubic')
-    #     plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
-    #     plt.show()
-
-    # count = 0
-    # for info_line in read_images_info(tmp_file):
-    #     img_dir, major_axis_radius, minor_axis_radius, angle, center_x, center_y = info_line
-
-    #     major_axis_radius = int(major_axis_radius)
-    #     minor_axis_radius = int(minor_axis_radius)
-    #     angle = int(angle)
-    #     center_x = int(center_x)
-    #     center_y = int(center_y)
-
-    #     img_dir = os.path.join(CUR_DIR, img_dir)
-    #     img = cv2.imread(img_dir)
-
-    #     orig_width = img.shape[1]
-    #     orig_height = img.shape[0]
-
-    #     ''' if the color reformation is needed '''
-    #     b,g,r=cv2.split(img)
-    #     img=cv2.merge([r,g,b])
-    #     ''' ended '''
-
-    #     # plt.imshow(img, cmap = 'gray', interpolation = 'bicubic')
-    #     # plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
-    #     # plt.show()
-
-    #     ''' rectangle box information '''
-    #     face_width = int(minor_axis_radius)
-    #     face_height = int(major_axis_radius)
-    #     top_left = (center_x - face_width, center_y - face_height)
-    #     bottom_right = (center_x + face_width, center_y + face_height)
-    #     ''' ended '''
-
-    #     '''
-    #     Sliding Window List:
-    #         (sliding_left, sliding_up): 
-    #             1 means sliding to the direction with 1/3*width or 1/3*height
-    #             0 means no sliding
-    #             -1 means sliding to the opposite direction
-    #     '''
-    #     sliding_window = [(1, 0), (1, 1), (0, 1), (-1, 1),
-    #                       (-1,0), (-1, -1), (0, -1), (1, -1)]
-
-    #     for i in range(8):
-    #         slide_left, slide_up = sliding_window[i]
-    #         slide_left = int(slide_left * face_width * (2/3))
-    #         slide_up = int(slide_up * face_height * (2/3))
-
-    #         subimg_top_left_y = top_left[1] - slide_up if top_left[1] - slide_up > 0 else 0
-    #         subimg_top_left_x = top_left[0] - slide_left if top_left[0] - slide_left > 0 else 0
-    #         subimg_bot_right_y = bottom_right[1] - slide_up if bottom_right[1] - slide_up < orig_height else orig_height
-    #         subimg_bot_right_x = bottom_right[0] - slide_left if bottom_right[0] - slide_left < orig_width else orig_width
-    #         slided_img = img[subimg_top_left_y:subimg_bot_right_y, subimg_top_left_x:subimg_bot_right_x]
-            
-    #         slided_img = cv2.resize(slided_img, TARGET_SIZE, interpolation = cv2.INTER_AREA)
-
-    #         hog_feature = hog(slided_img, orientations=9, pixels_per_cell=(16, 16), cells_per_block=(2, 2))
-    #         print(hog_feature.shape)
-        
-    #     count += 1 
-    #     if count > 5:
-    #         break        
