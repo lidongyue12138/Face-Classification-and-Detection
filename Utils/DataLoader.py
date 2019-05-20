@@ -13,6 +13,7 @@ TODO:
 from matplotlib import pyplot as plt
 from skimage.feature import hog
 import numpy as np
+import pickle
 import os
 import cv2
 
@@ -334,13 +335,37 @@ class DataLoader:
         hog_feature = hog(image, orientations=9, pixels_per_cell=(16, 16), cells_per_block=(2, 2))
         return hog_feature
     # ----------------------------------------- CUTE SPLIT LINE -------------------------------------------------
+    def load_pickle_dataset(self):
+        fr_train_data = open("./train_data.pkl", 'rb')
+        fr_train_label = open("./train_label.pkl", 'rb')
+        fr_test_data = open("./test_data.pkl", 'rb')
+        fr_test_label = open("./test_label.pkl", 'rb')
 
+        self.train_data = pickle.load(fr_train_data)
+        self.train_label = pickle.load(fr_train_label)
+        self.test_data = pickle.load(fr_test_data)
+        self.test_label = pickle.load(fr_test_label)
+        
+        fr_train_data.close()
+        fr_train_label.close()
+        fr_test_data.close()
+        fr_test_label.close()
+
+        print("========== Loading training and testing finished =========")
+    
+    def save_dataset(self):
+        self.save_to_pickle(self.train_data, "train_data")
+        self.save_to_pickle(self.train_label, "train_label")
+        self.save_to_pickle(self.test_data, "test_data")
+        self.save_to_pickle(self.test_label, "test_label")
+
+    def save_to_pickle(self, data, name):
+        fw = open(name + ".pkl", 'wb')
+        pickle.dump(data, fw)
+        fw.close()
 
 if __name__ == "__main__":
-    image_fold_list = os.listdir(ELLIPSE_DIR)
-    tmp_file = image_fold_list[0]
-
     DataLoader = DataLoader()
-    print(DataLoader.fold_list)
-    print(DataLoader.ellipse_list)
-    DataLoader.load_dataset()
+    # DataLoader.load_dataset()
+    # DataLoader.save_dataset()
+    DataLoader.load_pickle_dataset()
