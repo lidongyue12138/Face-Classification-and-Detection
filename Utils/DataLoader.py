@@ -136,7 +136,7 @@ class DataLoader:
     '''
     def generate_negative_samples(self, file_name, mode = "ORIGINAL"):
         if mode == "ORIGINAL":
-            for img_dir in read_images_names(file_name):
+            for img_dir in self.read_images_names(file_name):
                 img_dir = os.path.join(CUR_DIR, img_dir)
                 img = cv2.imread(img_dir)
 
@@ -151,7 +151,7 @@ class DataLoader:
                 resized_img = cv2.resize(img, TARGET_SIZE, cv2.INTER_AREA)
                 yield resized_img
         if mode == "SLIDING":
-            for info_line in read_images_info(file_name):
+            for info_line in self.read_images_info(file_name):
                 img_dir, major_axis_radius, minor_axis_radius, angle, center_x, center_y = info_line
 
                 major_axis_radius = int(major_axis_radius)
@@ -278,7 +278,7 @@ class DataLoader:
     '''
     def visualize_face(self, file_name):
         count = 0
-        for info_line in read_images_info(tmp_file):
+        for info_line in self.read_images_info(tmp_file):
             img_dir, major_axis_radius, minor_axis_radius, angle, center_x, center_y = info_line
             print(img_dir)
             print(major_axis_radius)
@@ -334,35 +334,6 @@ class DataLoader:
         hog_feature = hog(image, orientations=9, pixels_per_cell=(16, 16), cells_per_block=(2, 2))
         return hog_feature
     # ----------------------------------------- CUTE SPLIT LINE -------------------------------------------------
-
-def read_images_names(file_name):
-    fr = open(os.path.join(FOLDS_DIR, file_name), "r")
-    for img_dir in fr.readlines():
-        img_dir = img_dir.strip() + ".jpg"
-        yield img_dir
-
-def read_images_info(file_name):
-    fr = open(os.path.join(ELLIPSE_DIR, file_name), "r")
-    while True:
-        img_dir = fr.readline()
-        img_dir = img_dir.strip() + ".jpg"
-        if not img_dir:
-            break
-
-        try:
-            face_num = int(fr.readline())
-            for _ in range(face_num):
-                tmp_info_line = fr.readline()
-                tmp_info_line = tmp_info_line.split()
-                
-                major_axis_radius = float(tmp_info_line[0])
-                minor_axis_radius = float(tmp_info_line[1])
-                angle = float(tmp_info_line[2])
-                center_x = float(tmp_info_line[3])
-                center_y = float(tmp_info_line[4])
-                yield img_dir, major_axis_radius, minor_axis_radius, angle, center_x, center_y
-        except:
-            break
 
 
 if __name__ == "__main__":
