@@ -73,8 +73,8 @@ class DataLoader:
         self.whole_data = np.array(self.whole_data)
         self.whole_label = np.array(self.whole_label)
         permutation = np.random.permutation(len(self.whole_data))
-        self.whole_data[permutation]
-        self.whole_label[permutation]
+        self.whole_data = self.whole_data[permutation]
+        self.whole_label = self.whole_label[permutation]
         ''' Ended '''
 
         print("========== Loading all fold finished =========")
@@ -366,6 +366,6 @@ class DataLoader:
 
 if __name__ == "__main__":
     DataLoader = DataLoader()
-    # DataLoader.load_dataset()
-    # DataLoader.save_dataset()
-    DataLoader.load_pickle_dataset()
+    DataLoader.load_dataset()
+    DataLoader.save_dataset()
+    # DataLoader.load_pickle_dataset()

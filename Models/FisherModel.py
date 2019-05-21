@@ -27,10 +27,10 @@ class FisherModel:
         '''
         # Calculate means for each classes
         self.mean_zero = np.mean(X[y==0], axis = 0)
-        cov_zero = np.cov(X[y==0].T)
+        cov_zero = np.cov(X[y==0], rowvar=False)
         num_zero = len(X[y==0])
         self.mean_one = np.mean(X[y==1], axis = 0)
-        cov_one = np.cov(X[y==1].T)
+        cov_one = np.cov(X[y==1], rowvar=False)
         num_one = len(X[y==1])
 
         # Calculate the overall mean
@@ -45,23 +45,24 @@ class FisherModel:
         '''
         This is equation given by Quanshi Zhang
         '''
-        self.w = np.dot(np.linalg.pinv(S_W), self.mean_zero - self.mean_one)
+        # self.w = np.dot(np.linalg.pinv(S_W), self.mean_zero - self.mean_one)
 
         '''
         This is by calculating eigenvalue
         To be fixed
         '''
-        # # Find eigenvalue, eigenvector pairs for inv(S_W).S_B
-        # mat = np.dot(np.linalg.pinv(S_W), S_B)
-        # eigvals, eigvecs = np.linalg.eig(mat)
-        # eiglist = [(eigvals[i], eigvecs[:, i]) for i in range(len(eigvals))]
+        # Find eigenvalue, eigenvector pairs for inv(S_W).S_B
+        mat = np.dot(np.linalg.pinv(S_W), S_B)
+        eigvals, eigvecs = np.linalg.eig(mat)
+        eiglist = [(eigvals[i], eigvecs[:, i]) for i in range(len(eigvals))]
 
-        # # Sort the eigvals in decreasing order
-        # eiglist = sorted(eiglist, key = lambda x : x[0], reverse = True)
+        # Sort the eigvals in decreasing order
+        eiglist = sorted(eiglist, key = lambda x : x[0], reverse = True)
 
-        # # Take the first num_dims eigvectors
-        # # w = np.array([eiglist[i][1] for i in range(self.num_dims)])
-        # self.w = eiglist[0][1]
+        # Take the first num_dims eigvectors
+        self.num_dims = 10
+        w = np.array([eiglist[i][1] for i in range(self.num_dims)])
+        self.w = w.T
         
     '''
     Function to calculate the classification threshold.
@@ -106,11 +107,21 @@ class FisherModel:
         self.gaussian_mean_one = np.mean(proj_one, axis=0)
         self.gaussian_cov_one = np.cov(proj_one, rowvar=False)
 
+
         proj_X = np.dot(X, self.w)
         # Calculate the projected likelihood
+        # likelihoods = np.array(list(
+        #     [self.prior_zero*self.__post_probabilty(
+        #         x, self.gaussian_mean_zero, self.gaussian_cov_zero, dim=self.num_dims),
+        #      self.prior_one*self.__post_probabilty(
+        #         x, self.gaussian_mean_one, self.gaussian_cov_one, dim=self.num_dims)
+        #     ] for x in proj_X
+        # ))
         likelihoods = np.array(list(
-            [self.prior_zero*self.__post_probabilty(x, self.gaussian_mean_zero, self.gaussian_cov_zero),
-             self.prior_one*self.__post_probabilty(x, self.gaussian_mean_one, self.gaussian_cov_one)
+            [self.__post_probabilty(
+                x, self.gaussian_mean_zero, self.gaussian_cov_zero, dim=self.num_dims),
+             self.__post_probabilty(
+                x, self.gaussian_mean_one, self.gaussian_cov_one, dim=self.num_dims)
             ] for x in proj_X
         ))
 
@@ -125,21 +136,29 @@ class FisherModel:
     def test_acc_gaussian(self, X, y):
         proj_X = np.dot(X, self.w)
         # Calculate the projected likelihood
+        # likelihoods = np.array(list(
+        #     [self.prior_zero*self.__post_probabilty(
+        #         x, self.gaussian_mean_zero, self.gaussian_cov_zero, dim=self.num_dims),
+        #      self.prior_one*self.__post_probabilty(
+        #         x, self.gaussian_mean_one, self.gaussian_cov_one, dim=self.num_dims)
+        #     ] for x in proj_X
+        # ))
         likelihoods = np.array(list(
-            [self.prior_zero*self.__post_probabilty(x, self.gaussian_mean_zero, self.gaussian_cov_zero),
-             self.prior_one*self.__post_probabilty(x, self.gaussian_mean_one, self.gaussian_cov_one)
+            [self.__post_probabilty(
+                x, self.gaussian_mean_zero, self.gaussian_cov_zero, dim=self.num_dims),
+             self.__post_probabilty(
+                x, self.gaussian_mean_one, self.gaussian_cov_one, dim=self.num_dims)
             ] for x in proj_X
         ))
 
         y_pred = np.argmax(likelihoods, axis = 1)
-        
         test_acc = np.mean(y_pred == y)
         print("Testing accuracy: %f" %test_acc)
 
     # calculate the probability density for gaussian distribution
     def __post_probabilty(self, data, mean, cov, dim=1):
         if dim == 1:
-            cons = 1./((2*np.pi)**(1/2.)*cov**(-0.5))
+            cons = 1./(np.math.sqrt(2*np.math.pi*cov))
             return cons*np.exp(-(data - mean)**2/2*cov)
         else:
             cons = 1./((2*np.pi)**(len(data)/2.)*np.linalg.det(cov)**(-0.5))
