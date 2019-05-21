@@ -40,6 +40,9 @@ class DataLoader:
         self.test_data = None
         self.test_label = None
 
+        self.train_batch_count = 0
+        self.test_batch_count = 0
+
     # ----------------------------------------- CUTE SPLIT LINE -------------------------------------------------
     '''
     Only load image data into dataset:
@@ -87,7 +90,46 @@ class DataLoader:
 
         print("========== Loading training and testing finished =========")
 
+    '''
+    Load image (not HOG)
+    '''
+    def load_dataset_raw(self):
+        self.whole_data = []
+        self.whole_label = []
 
+        ''' Generate positive samples for training set '''
+        for i, ellipse_fold in enumerate(self.ellipse_list):
+            for face_img in self.generate_clipped_faces(ellipse_fold):
+                self.whole_data.append(face_img)
+                self.whole_label.append(1)
+            print("========== Loading positive samples in NO.%d fold finished =========" %(i+1))
+        ''' Ended '''
+
+        ''' Generate negative samples for training set '''
+        for i, fold in enumerate(self.fold_list):
+            for negative_img in self.generate_negative_samples(fold, mode = "ORIGINAL"):
+                self.whole_data.append(negative_img)
+                self.whole_label.append(0)
+            print("========== Loading negative samples in NO.%d fold finished =========" %(i+1))
+        ''' Ended '''
+        
+        ''' Shuffle data '''
+        self.whole_data = np.array(self.whole_data)
+        self.whole_label = np.array(self.whole_label)
+        permutation = np.random.permutation(len(self.whole_data))
+        self.whole_data = self.whole_data[permutation]
+        self.whole_label = self.whole_label[permutation]
+        ''' Ended '''
+
+        print("========== Loading all fold finished =========")
+        print("whole data size: (%d,\t %d)" %(self.whole_data.shape[0], self.whole_data.shape[1]))
+        
+        self.train_data = self.whole_data[:int(len(self.whole_data)*0.8)]
+        self.train_label = self.whole_label[:int(len(self.whole_data)*0.8)]
+        self.test_data = self.whole_data[int(len(self.whole_data)*0.8)+1:]
+        self.test_label = self.whole_label[int(len(self.whole_data)*0.8)+1:]
+
+        print("========== Loading training and testing finished =========")
     # ----------------------------------------- CUTE SPLIT LINE -------------------------------------------------
     def read_images_names(self, file_name):
         fr = open(os.path.join(FOLDS_DIR, file_name), "r")
@@ -363,6 +405,34 @@ class DataLoader:
         fw = open(name + ".pkl", 'wb')
         pickle.dump(data, fw)
         fw.close()
+        
+    # ----------------------------------------- CUTE SPLIT LINE -------------------------------------------------
+    def next_batch_train(self, batch_num):
+        if self.train_batch_count + batch_num > self.train_label.shape[0]:
+            self.train_batch_count = 0
+            batch_X, batch_y = \
+                self.train_data[self.train_batch_count: self.train_batch_count+batch_num], \
+                self.train_label[self.train_batch_count: self.train_batch_count+batch_num]
+        else:
+           batch_X, batch_y = \
+                self.train_data[self.train_batch_count: self.train_batch_count+batch_num], \
+                self.train_label[self.train_batch_count: self.train_batch_count+batch_num]
+        self.train_batch_count += batch_num 
+        return batch_X, batch_y
+
+    def next_batch_test(self, batch_num):
+        if self.test_batch_count + batch_num > self.test_label.shape[0]:
+            self.test_batch_count = 0
+            batch_X, batch_y = \
+                self.test_data[self.test_batch_count: self.test_batch_count+batch_num], \
+                self.test_label[self.test_batch_count: self.test_batch_count+batch_num]
+        else:
+           batch_X, batch_y = \
+                self.test_data[self.test_batch_count: self.test_batch_count+batch_num], \
+                self.test_label[self.test_batch_count: self.test_batch_count+batch_num]
+        self.test_batch_count += batch_num 
+        return batch_X, batch_y
+            
 
 if __name__ == "__main__":
     DataLoader = DataLoader()
