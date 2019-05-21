@@ -5,7 +5,7 @@ from Models.LogisticModel import LogisticRegression
 from Models.FisherModel import FisherModel
 
 Data = DataLoader()
-Data.load_dataset()
+Data.load_pickle_dataset()
 
 fisher_model = FisherModel()
 fisher_model.fit_gaussian(Data.train_data, Data.train_label)
