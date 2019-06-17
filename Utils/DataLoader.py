@@ -319,9 +319,9 @@ class DataLoader:
     '''
     This is used to visualize the ellipse and rectangle window of each face
     '''
-    def visualize_face(self, file_name):
+    def visualize_face(self, file_name = "FDDB-fold-01-ellipseList.txt"):
         count = 0
-        for info_line in self.read_images_info(tmp_file):
+        for info_line in self.read_images_info(file_name):
             img_dir, major_axis_radius, minor_axis_radius, angle, center_x, center_y = info_line
             print(img_dir)
             print(major_axis_radius)
@@ -357,9 +357,36 @@ class DataLoader:
             top_left = (center_x - face_width, center_y - face_height)
             bottom_right = (center_x + face_width, center_y + face_height)
 
-            img = cv2.rectangle(img,top_left,bottom_right,(255,0,0),3)
+            # img = cv2.rectangle(img,top_left,bottom_right,(255,0,0),3)
             # ended
 
+            '''
+            Sliding Window List:
+                (sliding_left, sliding_up): 
+                    1 means sliding to the direction with 1/3*width or 1/3*height
+                    0 means no sliding
+                    -1 means sliding to the opposite direction
+            '''
+            orig_width = img.shape[1]
+            orig_height = img.shape[0]
+            sliding_window = [(1, 0), (1, 1), (0, 1), (-1, 1),
+                            (-1,0), (-1, -1), (0, -1), (1, -1)]
+
+            for i in range(8):
+                slide_left, slide_up = sliding_window[i]
+                slide_left = int(slide_left * face_width * (2/3))
+                slide_up = int(slide_up * face_height * (2/3))
+
+                subimg_top_left_y = top_left[1] - slide_up if top_left[1] - slide_up > 0 else 0
+                subimg_top_left_x = top_left[0] - slide_left if top_left[0] - slide_left > 0 else 0
+                subimg_bot_right_y = bottom_right[1] - slide_up if bottom_right[1] - slide_up < orig_height else orig_height
+                subimg_bot_right_x = bottom_right[0] - slide_left if bottom_right[0] - slide_left < orig_width else orig_width
+                
+                sub_top_left = (subimg_top_left_x, subimg_top_left_y)
+                sub_bot_right = (subimg_bot_right_x, subimg_bot_right_y)
+                img = cv2.rectangle(img,sub_top_left,sub_bot_right,(0,255,0),3)
+
+            img = cv2.rectangle(img,top_left,bottom_right,(255,0,0),3)
             # if the color reformation is needed
             b,g,r=cv2.split(img)
             img=cv2.merge([r,g,b])
@@ -436,6 +463,7 @@ class DataLoader:
 
 if __name__ == "__main__":
     DataLoader = DataLoader()
-    DataLoader.load_dataset()
-    DataLoader.save_dataset()
+    # DataLoader.load_dataset()
+    # DataLoader.save_dataset()
     # DataLoader.load_pickle_dataset()
+    DataLoader.visualize_face()

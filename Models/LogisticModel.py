@@ -13,7 +13,7 @@ import math
 
 
 class LogisticRegression:
-    def __init__(self, lr=0.01, num_iter=100000, fit_intercept=True, verbose=True):
+    def __init__(self, lr=0.001, num_iter=100000, fit_intercept=True, verbose=True):
         self.lr = lr
         self.num_iter = num_iter
         self.fit_intercept = fit_intercept
@@ -61,8 +61,9 @@ class LogisticRegression:
                 z = np.dot(X, self.theta)
                 h = self.__sigmoid(z)
                 print(f'loss: {self.__loss(h, y)} \t')
+                print("Training acc: %f" %(self.predict_accuracy(X, y, isTraining = True)))
 
-    def fit_langevin_dynamics(self, X, y):
+    def fit_langevin_dynamics(self, X, y, mini_batch_size=500):
         if self.fit_intercept:
             X = self.__add_intercept(X)
         
@@ -75,15 +76,19 @@ class LogisticRegression:
             '''
             Implement a langevin dynamics: Stochastic Gradient Langevin dynamics
             '''
-            gradient = np.dot(X.T, (h - y)) / y.size
-            update = self.lr/2 * gradient + np.random.normal(loc=0, scale=self.lr)
+            select_index = np.random.randint(y.size, size=mini_batch_size)
+
+            X_mini_batch = X.T[:,select_index]
+            gradient = np.dot(X_mini_batch, (h - y)[select_index]) / mini_batch_size
+            update = self.lr/2 * gradient + \
+                     np.random.normal(loc=0, scale=self.lr)
             self.theta -= update
             ''' end '''
             
             if(self.verbose == True and i % 10000 == 0):
                 z = np.dot(X, self.theta)
                 h = self.__sigmoid(z)
-                print(f'loss: {self.__loss(h, y)} \n')
+                print(f'loss: {self.__loss(h, y)}')
                 print("Training acc: %f" %(self.predict_accuracy(X, y, isTraining = True)))
 
     '''
@@ -104,6 +109,10 @@ class LogisticRegression:
         else:
             y_pred = self.predict(X)
         return np.mean(y == y_pred)
+
+    def test_acc(self, X, y):
+        acc = self.predict_accuracy(X, y, isTraining = False)
+        print("Testing accuracy: %f" %acc)
 
     '''
     Helper functions
