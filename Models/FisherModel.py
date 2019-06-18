@@ -33,6 +33,11 @@ class FisherModel:
         cov_one = np.cov(X[y==1], rowvar=False)
         num_one = len(X[y==1])
 
+        self.cov_zero = cov_zero
+        self.num_zero = num_zero
+        self.cov_one = cov_one
+        self.num_one = num_one
+
         # Calculate the overall mean
         self.overall_mean = np.mean(X, axis = 0)
 
@@ -45,24 +50,28 @@ class FisherModel:
         '''
         This is equation given by Quanshi Zhang
         '''
-        # self.w = np.dot(np.linalg.pinv(S_W), self.mean_zero - self.mean_one)
+        self.w = np.dot(np.linalg.pinv(S_W), self.mean_zero - self.mean_one)
+        self.num_dims = 1
+        
+        # '''
+        # This is by calculating eigenvalue
+        # To be fixed
+        # '''
+        # # Find eigenvalue, eigenvector pairs for inv(S_W).S_B
+        # mat = np.dot(np.linalg.pinv(S_W), S_B)
+        # eigvals, eigvecs = np.linalg.eig(mat)
+        # eiglist = [(eigvals[i], eigvecs[:, i]) for i in range(len(eigvals))]
 
-        '''
-        This is by calculating eigenvalue
-        To be fixed
-        '''
-        # Find eigenvalue, eigenvector pairs for inv(S_W).S_B
-        mat = np.dot(np.linalg.pinv(S_W), S_B)
-        eigvals, eigvecs = np.linalg.eig(mat)
-        eiglist = [(eigvals[i], eigvecs[:, i]) for i in range(len(eigvals))]
+        # # Sort the eigvals in decreasing order
+        # eiglist = sorted(eiglist, key = lambda x : x[0], reverse = True)
 
-        # Sort the eigvals in decreasing order
-        eiglist = sorted(eiglist, key = lambda x : x[0], reverse = True)
+        # # Take the first num_dims eigvectors
+        # self.num_dims = 1
+        # w = np.array([eiglist[i][1] for i in range(self.num_dims)])
+        # self.w = w.T
+        # self.w = np.reshape(self.w, (900,))
 
-        # Take the first num_dims eigvectors
-        self.num_dims = 10
-        w = np.array([eiglist[i][1] for i in range(self.num_dims)])
-        self.w = w.T
+        # print(self.w.shape)
         
     '''
     Function to calculate the classification threshold.

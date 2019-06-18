@@ -43,6 +43,125 @@ class DataLoader:
         self.train_batch_count = 0
         self.test_batch_count = 0
 
+    '''
+    New Data Loader:   
+        specifying the trianing folder (first 8 folders) + testing folder (last 2 folders)
+    '''
+    def load_dataset_new(self):
+        self.train_data_img = []
+        self.train_data_hog = []
+        self.train_label = []
+        self.test_data_img = []
+        self.test_data_hog = []
+        self.test_label = []
+
+        ''' Generate positive samples for training set '''
+        for i, ellipse_fold in enumerate(self.ellipse_list):
+            if i<8:
+                for face_img in self.generate_clipped_faces(ellipse_fold):
+                    tmp_hog_feature = self.extract_hog_feature(face_img)
+                    self.train_data_img.append(face_img)
+                    self.train_data_hog.append(tmp_hog_feature)
+                    self.train_label.append(1)
+                print("========== Loading positive samples in NO.%d fold finished =========" %(i+1))
+            else:
+                for face_img in self.generate_clipped_faces(ellipse_fold):
+                    tmp_hog_feature = self.extract_hog_feature(face_img)
+                    self.test_data_img.append(face_img)
+                    self.test_data_hog.append(tmp_hog_feature)
+                    self.test_label.append(1)
+                print("========== Loading positive samples in NO.%d fold finished =========" %(i+1))
+            if i<8:
+                for negative_img in self.generate_negative_samples(ellipse_fold, mode = "SLIDING"):
+                    tmp_hog_feature = self.extract_hog_feature(negative_img)
+                    self.train_data_img.append(negative_img)
+                    self.train_data_hog.append(tmp_hog_feature)
+                    self.train_label.append(0)
+                print("========== Loading negative samples in NO.%d fold finished =========" %(i+1))
+            else:
+                for negative_img in self.generate_negative_samples(ellipse_fold, mode = "SLIDING"):
+                    tmp_hog_feature = self.extract_hog_feature(negative_img)
+                    self.test_data_img.append(negative_img)
+                    self.test_data_hog.append(tmp_hog_feature)
+                    self.test_label.append(0)
+                print("========== Loading negative samples in NO.%d fold finished =========" %(i+1))
+        ''' Ended '''
+
+        ''' Generate negative samples for training set '''
+        for i, fold in enumerate(self.fold_list):
+            if i<8:
+                for negative_img in self.generate_negative_samples(fold, mode = "ORIGINAL"):
+                    tmp_hog_feature = self.extract_hog_feature(negative_img)
+                    self.train_data_img.append(negative_img)
+                    self.train_data_hog.append(tmp_hog_feature)
+                    self.train_label.append(0)
+                print("========== Loading negative samples in NO.%d fold finished =========" %(i+1))
+            else:
+                for negative_img in self.generate_negative_samples(fold, mode = "ORIGINAL"):
+                    tmp_hog_feature = self.extract_hog_feature(negative_img)
+                    self.test_data_img.append(negative_img)
+                    self.test_data_hog.append(tmp_hog_feature)
+                    self.test_label.append(0)
+                print("========== Loading negative samples in NO.%d fold finished =========" %(i+1))
+        ''' Ended '''
+
+        self.train_data_img = np.array(self.train_data_img)
+        self.train_data_hog = np.array(self.train_data_hog)
+        self.train_label = np.array(self.train_label)
+        self.test_data_img = np.array(self.test_data_img)
+        self.test_data_hog = np.array(self.test_data_hog)
+        self.test_label = np.array(self.test_label)
+
+        ''' Shuffle data '''
+        permutation = np.random.permutation(len(self.train_label))
+        self.train_data_img = self.train_data_img[permutation]
+        self.train_data_hog = self.train_data_hog[permutation]
+        self.train_label = self.train_label[permutation]
+
+        permutation = np.random.permutation(len(self.test_label))
+        self.test_data_img = self.test_data_img[permutation]
+        self.test_data_hog = self.test_data_hog[permutation]
+        self.test_label = self.test_label[permutation]
+        ''' Ended '''
+
+        self.save_to_pickle(self.train_data_img, "train_data_img")
+        self.save_to_pickle(self.train_data_hog, "train_data_hog")
+        self.save_to_pickle(self.train_label, "train_label")
+        self.save_to_pickle(self.test_data_img, "test_data_img")
+        self.save_to_pickle(self.test_data_hog, "test_data_hog")
+        self.save_to_pickle(self.test_label, "test_label")
+
+        # self.train_data = self.train_data_hog
+        # self.test_data = self.test_data_hog
+        print("========== Loading training and testing finished =========")
+    
+    def load_pickle_dataset_new(self):
+        fr_train_data_img = open("./train_data_img.pkl", 'rb')
+        fr_train_data_hog = open("./train_data_hog.pkl", 'rb')
+        fr_train_label = open("./train_label.pkl", 'rb')
+        fr_test_data_img = open("./test_data_img.pkl", 'rb')
+        fr_test_data_hog = open("./test_data_hog.pkl", 'rb')
+        fr_test_label = open("./test_label.pkl", 'rb')
+
+        self.train_data_img = pickle.load(fr_train_data_img)
+        self.train_data_hog = pickle.load(fr_train_data_hog)
+        self.train_label = pickle.load(fr_train_label)
+        self.test_data_img = pickle.load(fr_test_data_img)
+        self.test_data_hog = pickle.load(fr_test_data_hog)
+        self.test_label = pickle.load(fr_test_label)
+        
+        fr_train_data_img.close()
+        fr_train_data_hog.close()
+        fr_train_label.close()
+        fr_test_data_img.close()
+        fr_test_data_hog.close()
+        fr_test_label.close()
+
+        self.train_data = self.train_data_img
+        self.test_data = self.test_data_img
+        print("========== Loading training and testing finished =========")
+
+        
     # ----------------------------------------- CUTE SPLIT LINE -------------------------------------------------
     '''
     Only load image data into dataset:
@@ -463,7 +582,7 @@ class DataLoader:
 
 if __name__ == "__main__":
     DataLoader = DataLoader()
-    # DataLoader.load_dataset()
+    DataLoader.load_dataset_new()
     # DataLoader.save_dataset()
-    # DataLoader.load_pickle_dataset()
-    DataLoader.visualize_face()
+    DataLoader.load_pickle_dataset_new()
+    # DataLoader.visualize_face()
