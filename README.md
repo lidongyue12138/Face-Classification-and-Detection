@@ -147,7 +147,7 @@ To run face detection, you should refer to `face_detection.py`:
 
 ```python
 from sklearn.linear_model import LogisticRegression
-rgr_model = LogisticRegression(random_state=0, solver='lbfgs', 			       multi_class='multinomial').fit(Data.train_data_hog, Data.train_label)
+rgr_model = LogisticRegression(random_state=0, solver='lbfgs', multi_class='multinomial').fit(Data.train_data_hog, Data.train_label)
 
 file_name = "./2002/07/31/big/img_593.jpg"
 
