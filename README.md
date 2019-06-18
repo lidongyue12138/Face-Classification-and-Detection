@@ -154,13 +154,11 @@ file_name = "./2002/07/31/big/img_593.jpg"
 face_detection(rgr_model, file_name)
 ```
 
-
-
 ### Contact 
 
 If you have any problem about this code, please contact me through: lidongyue AT sjtu DOT edu DOT cn
 
-##Deprecated
+## Deprecated
 
 ### TO DO
 
